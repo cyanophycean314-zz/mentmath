@@ -1,5 +1,37 @@
 
-head {
+@import url('https://fonts.googleapis.com/css?family=Lato');
+
+body {
+    text-align: center;
+    background-color: #edf3ff;
+    font-family: 'Lato', sans-serif;
+}
+
+header {
     margin-top: 2em;
-    margin-bottom: 2em;
+    margin-bottom: 5em;
+}
+
+main {
+    padding-top: 2em;
+    padding-bottom: 2em;
+    height: 9em;
+    background-color: #79a9f7;
+}
+
+#probdisp {
+    font-size: 4em;
+    margin-bottom: 0.3em;
+    visibility: hidden;
+}
+
+#ans {
+    margin-bottom: 0.5em;
+}
+
+footer {
+    position: absolute;
+    left: 1em;
+    bottom: 1em;
+    font-size: 0.7em;
 }
