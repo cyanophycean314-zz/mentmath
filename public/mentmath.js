@@ -1,7 +1,96 @@
 
-function Problem(text) {
-  this.text = text;
-  this.ans = eval(text);
+function Config(ao, ar, mo, mr, eo, er, ws) {
+  this.addops = ao;
+  this.addrange = ar;
+  this.mulops = mo;
+  this.mulrange = mr;
+  this.expops = eo;
+  this.exprange = er;
+  this.weights = ws;
+}
+var configs = {
+  "easy" : new Config([2,2], [1,100], [2,2], [1,20], [2,2], [[1,15], [2,2]], [1,1,1,1,1]),
+  "hard" : new Config([2,3], [5,500], [2,2], [5,100], [2,2], [[5,25], [2,3]], [1,1,1,1,1])
+}
+
+function gen_rand_range(bounds) {
+  return Math.floor(Math.random() * (bounds[1] - bounds[0])) + bounds[0];
+}
+
+function gen_weighted(weights) {
+  //Given array of weights. Return weighted random of choosing certain index
+  var prefixsums = weights.slice();
+  for (var i = 1; i < weights.length; i++) {
+    prefixsums[i] += prefixsums[i - 1];
+  }
+  var totalweight = prefixsums[prefixsums.length - 1];
+  var val = Math.random() * totalweight;
+  var ans = 0;
+  while (ans < prefixsums.length && val > prefixsums[ans]) {
+    ans++;
+  }
+  console.log(ans);
+  return ans;
+}
+
+function Problem(diff) {
+  this.diff = diff;
+
+  this.args = [];
+  var c = configs[diff];
+  //2 arguments
+  switch(gen_weighted(c.weights)) {
+    //0-1 Add and Sub
+    case 0:
+      this.ops = '+';
+      //fall through
+    case 1:
+      this.ops = (this.ops === '+') ? '+' : '-';
+
+      var numargs = gen_rand_range(c.addops);
+      for (var i = 0; i < numargs; i++) {
+        this.args.push(gen_rand_range(c.addrange));
+      }
+      break;
+
+    //2-3 Multiply and Divide
+    case 2:
+      this.ops = '*';
+      //fall through
+    case 3:
+      this.ops = (this.ops === '*') ? '*' : '/';
+
+      var numargs = gen_rand_range(c.mulops);
+      for (var i = 0; i < numargs; i++) {
+        this.args.push(gen_rand_range(c.mulrange));
+      }
+
+      //Make division nicer
+      if (this.ops == '/') {
+        for (var i = 1; i < numargs; i++) {
+          this.args[0] *= this.args[i];
+        }
+      }
+      break;
+
+    //4 Power
+    case 4:
+      this.ops = '^';
+      var numargs = gen_rand_range(c.expops);
+      for (var i = 0; i < numargs; i++) {
+        this.args.push(gen_rand_range(c.exprange[i]));
+      }
+      break;
+
+    default:
+      console.log("Error creating problem"); 
+  }
+
+  if (this.ops != '^') {
+    this.ans = eval(this.toString());
+  } else {
+    this.ans = Math.pow(this.args[0], this.args[1]);
+  }
 }
 
 Problem.prototype = {
@@ -11,9 +100,18 @@ Problem.prototype = {
     return this.ans == guess;
   },
   toString: function() {
-    return this.text;
+    var probtext = "", numargs = this.args.length;
+    for (var i = 0; i < numargs; i++) {
+      probtext += this.args[i];
+      if (i < numargs - 1) {
+        probtext += " " + this.ops[i] + " ";
+      }
+    }
+    return probtext;
   }
 }
+
+
 
 function MathTest(diff, time) {
   this.diff = diff;
@@ -55,48 +153,7 @@ MathTest.prototype = {
     this.updateDisplay();
   },
   addNewProb: function() {
-    var args = [];
-    var numargs = 2;
-    var range = [1,50];
-    if (this.diff == "hard") {
-      if (Math.random() < 0.5) {
-        numargs++;
-      }
-      if (Math.random() < 0.5) {
-        range = [10,100];
-      }
-    }
-
-    for (var i = 0; i < numargs; i++) {
-      args.push(Math.floor(Math.random() * (range[1] - range[0])) + range[0]);
-    }
-
-    var ops = [];
-    for (var i = 0; i < numargs - 1; i++) {
-      ops.push(this.operations[Math.floor(Math.random() * this.operations.length)]);
-    }
-
-    //make the division problems nicer
-    var startdiv = -1;
-    for (var i = 0; i < numargs - 1; i++) {
-      if (ops[i] == '/') {
-        startdiv = (startdiv != -1 ? startdiv : i);
-        args[startdiv] *= args[i + 1];
-      } else {
-        startdiv = -1;
-      }
-    }
-
-    //display the problem
-    var probtext = "";
-    for (var i = 0; i < numargs; i++) {
-      probtext += args[i];
-      if (i < numargs - 1) {
-        probtext += " " + ops[i] + " ";
-      }
-    }
-    
-    this.prob = new Problem(probtext);
+    this.prob = new Problem(this.diff);
     this.updateDisplay();
   },
   updateDisplay: function () {
@@ -104,7 +161,7 @@ MathTest.prototype = {
     $("#score").text("Score: " + this.score);
     $("#clock").text("Time: " + this.time);
     if (this.teston) {
-      $("#probdisp").text(this.prob.text);
+      $("#probdisp").text(this.prob.toString());
     } else {
       $("#probdisp").text("Score: " + this.score);
     }
