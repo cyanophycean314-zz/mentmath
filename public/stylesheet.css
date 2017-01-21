@@ -19,6 +19,10 @@ main {
     background-color: #79a9f7;
 }
 
+button:active {
+    font-style: bold;
+}
+
 #probdisp {
     font-size: 4em;
     margin-bottom: 0.3em;
@@ -35,3 +39,4 @@ footer {
     bottom: 1em;
     font-size: 0.7em;
 }
+
